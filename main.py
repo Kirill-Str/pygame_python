@@ -1,7 +1,7 @@
 import pygame
 import os
 import random
-
+#op
 pygame.init()
 size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
