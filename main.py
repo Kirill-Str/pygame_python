@@ -3,13 +3,10 @@ import os
 import random
 import time
 #op
-pygame.init()
-size = width, height = 500, 500
-screen = pygame.display.set_mode(size)
+
 game_over = False
 win, lose = False, False
-pygame.mixer.music.load("data/Missiya_Nevypolnima_-_Mission_Impossible_Theme_Ost_Missiya_nevypolnima_Plemya_izgoev_62673572.mp3")
-pygame.mixer.music.play(0)
+last_right = True
 
 def load_image(name, colorkey=None):
     image = pygame.image.load(os.path.join('data', name))
@@ -21,6 +18,33 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
+
+if __name__ == '__main__':
+    pygame.init()
+    size = width, height = 480, 1000
+    screen = pygame.display.set_mode(size)
+    all_sprites = pygame.sprite.Group()
+    gm_st = pygame.sprite.Sprite()
+    image = load_image('start.png')
+    pygame.mixer.music.load("data/Splash Reverb Version.mp3")
+    pygame.mixer.music.play(0)
+    gm_st.image = image
+    gm_st.rect = gm_st.image.get_rect()
+    gm_st.rect.x, gm_st.rect.y = 0, 0
+    all_sprites.add(gm_st)
+    pygame.display.flip()
+    # ожидание закрытия окна:
+    clock = pygame.time.Clock()
+    fps = 40
+    v = 5
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or event.type == pygame.MOUSEBUTTONDOWN:
+                running = False
+        all_sprites.draw(screen)
+        pygame.display.flip()
+        clock.tick(fps)
 
 
 
@@ -108,6 +132,7 @@ class Player(pygame.sprite.Sprite):
 
 
             if args:
+                global last_right
                 print(args)
                 if args[0].type == pygame.KEYDOWN:
                     if args[0].key == 1073741906 and self.fall:
@@ -118,14 +143,19 @@ class Player(pygame.sprite.Sprite):
                     if args[0].key == 1073741903:
                         self.go_left = True
                         self.bumped_right = False
+                        if not last_right:
+                            self.image = pygame.transform.flip(self.image, True, False)
+                            last_right = not last_right
                     if args[0].key == 1073741904:
                         self.go_right = True
                         self.bumped_left = False
+                        if last_right:
+                            self.image = pygame.transform.flip(self.image, True, False)
+                            last_right = not last_right
                 if args[0].type == pygame.KEYUP:
                     print(1)
                     if args[0].key == 1073741903:
                         self.go_left = False
-                        print(1)
                     if args[0].key == 1073741904:
                         self.go_right = False
             if self.go_left and not self.bumped_left:
@@ -256,6 +286,8 @@ def update_end(image, speed):
 if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('tetris')
+    pygame.mixer.music.load("data/Missiya_Nevypolnima_-_Mission_Impossible_Theme_Ost_Missiya_nevypolnima_Plemya_izgoev_62673572.mp3")
+    pygame.mixer.music.play(0)
     size = width, height = 480, 1000
     screen = pygame.display.set_mode(size)
     screen.fill([255, 255, 255])
