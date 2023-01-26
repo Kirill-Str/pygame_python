@@ -1,10 +1,15 @@
 import pygame
 import os
 import random
+import time
 #op
 pygame.init()
 size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
+game_over = False
+win, lose = False, False
+pygame.mixer.music.load("data/Missiya_Nevypolnima_-_Mission_Impossible_Theme_Ost_Missiya_nevypolnima_Plemya_izgoev_62673572.mp3")
+pygame.mixer.music.play(0)
 
 def load_image(name, colorkey=None):
     image = pygame.image.load(os.path.join('data', name))
@@ -16,6 +21,7 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
+
 
 
 class cadre(pygame.sprite.Sprite):
@@ -34,7 +40,7 @@ stabel_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 win_group = pygame.sprite.Group()
-player_image = load_image('chel.png')
+player_image = load_image('chel.png', -1)
 
 
 class door(pygame.sprite.Sprite):
@@ -43,7 +49,7 @@ class door(pygame.sprite.Sprite):
         super().__init__(win_group)
         self.image = door.image
         self.rect = self.image.get_rect()
-        self.rect = self.rect.move(200, 200)
+        self.rect = self.rect.move(135, 200)
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
@@ -141,10 +147,14 @@ class Player(pygame.sprite.Sprite):
                             self.rect = self.rect.move(1, 0)
                     self.bumped_right = True
         else:
+            global game_over, win, lose
             if self.win:
-                self.image = load_image('chel_win.png')
+                self.image = load_image('chel_win.png', -1)
+                win = True
             else:
-                self.image = load_image('chel_ded.png')
+                self.image = load_image('chel_ded.png', -1)
+                lose = True
+            game_over = True
 
 
 
@@ -235,6 +245,13 @@ class piece(pygame.sprite.Sprite):
                     break
             self.count += 1
 
+def update_end(image, speed):
+    if image.rect.x + image.rect.width > width:
+        speed = 0
+    image.rect.x = image.rect.x + speed
+    return speed
+
+
 
 if __name__ == '__main__':
     pygame.init()
@@ -248,6 +265,8 @@ if __name__ == '__main__':
     dor = door()
     running = True
     fps = 60
+    v = 5
+    Pause = False
     clock = pygame.time.Clock()
     while running:
         for event in pygame.event.get():
@@ -259,6 +278,19 @@ if __name__ == '__main__':
                 player_group.update(event)
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    Pause = not Pause
+                    if Pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+            #if game_over:
+                #for sprite in all_sprites:
+                #    v = update_end(sprite, v)
+                #all_sprites.draw(screen)
+                #pygame.display.flip()
+                #clock.tick(fps)
         all_sprites.update()
         win_group.update()
         player_group.update()
@@ -267,7 +299,45 @@ if __name__ == '__main__':
         all_sprites.draw(screen)
         stabel_group.draw(screen)
         player_group.draw(screen)
-
         clock.tick(fps)
         pygame.display.flip()
+        if game_over:
+            pygame.mixer.music.stop()
+            time.sleep(3)
+            pygame.init()
+            # размеры окна:
+            #size = width, height = 480, 1000
+            # screen — холст, на котором нужно рисовать:
+            screen = pygame.display.set_mode(size)
+            all_sprites = pygame.sprite.Group()
+            gm_ov = pygame.sprite.Sprite()
+            if lose:
+                screen.fill((0, 0, 255))
+                image = load_image('gameover_lose.png')
+                pygame.mixer.music.load("data/Грустный тромбон.mp3")
+                pygame.mixer.music.play(0)
+            else:
+                screen.fill((255, 255, 0))
+                image = load_image('gameover_win.png')
+                pygame.mixer.music.load("data/GTA_San_Andreas.mp3")
+                pygame.mixer.music.play(0, 10)
+            gm_ov.image = image
+            gm_ov.rect = gm_ov.image.get_rect()
+            gm_ov.rect.x, gm_ov.rect.y = -600, 0
+            all_sprites.add(gm_ov)
+            pygame.display.flip()
+            # ожидание закрытия окна:
+            clock = pygame.time.Clock()
+            fps = 40
+            v = 5
+            running = True
+            while running:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                for sprite in all_sprites:
+                    v = update_end(sprite, v)
+                all_sprites.draw(screen)
+                pygame.display.flip()
+                clock.tick(fps)
     pygame.quit()
