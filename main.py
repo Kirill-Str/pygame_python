@@ -379,7 +379,7 @@ if __name__ == '__main__':
         player_group.draw(screen)
         clock.tick(fps)
         pygame.display.flip()
-        follow = font.render(f'Score: {cnt}', 1, (255, 0, 0), (0, 0, 0))
+        follow = font.render(f'Score: {cnt}', True, (255, 0, 0), (0, 0, 0))
         screen.blit(follow, (0, 0))
         pygame.display.update()
         if game_over:
