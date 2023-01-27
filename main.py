@@ -9,6 +9,7 @@ win, lose = False, False
 last_right = True
 cnt = 0
 plus_v = 0
+Pause = False
 def load_image(name, colorkey=None):
     image = pygame.image.load(os.path.join('data', name))
     if colorkey is not None:
@@ -39,6 +40,7 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     fps = 40
     v = 5
+    vol = 1.0
     running = True
     while running:
         for event in pygame.event.get():
@@ -47,6 +49,21 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    Pause = not Pause
+                    if Pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_l:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                    print(pygame.mixer.music.get_volume())
+                elif event.key == pygame.K_h:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
+                    print(pygame.mixer.music.get_volume())
         all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(fps)
@@ -307,6 +324,8 @@ if __name__ == '__main__':
     pygame.display.set_caption('Тетрис-Паркур')
     pygame.mixer.music.load("data/Missiya_Nevypolnima_-_Mission_Impossible_Theme_Ost_Missiya_nevypolnima_Plemya_izgoev_62673572.mp3")
     pygame.mixer.music.play(0)
+    if Pause:
+        pygame.mixer.music.pause()
     font = pygame.font.SysFont('microsofttaile', 32)
     vol = 1.0
     size = width, height = 480, 1000
@@ -320,7 +339,6 @@ if __name__ == '__main__':
     running = True
     fps = 60
     v = 5
-    Pause = False
     clock = pygame.time.Clock()
     while running:
         for event in pygame.event.get():
