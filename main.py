@@ -8,6 +8,7 @@ game_over = False
 win, lose = False, False
 last_right = True
 cnt = 0
+plus_v = 0
 def load_image(name, colorkey=None):
     image = pygame.image.load(os.path.join('data', name))
     if colorkey is not None:
@@ -21,6 +22,7 @@ def load_image(name, colorkey=None):
 
 if __name__ == '__main__':
     pygame.init()
+    pygame.display.set_caption('Меню')
     size = width, height = 480, 1000
     screen = pygame.display.set_mode(size)
     all_sprites = pygame.sprite.Group()
@@ -40,8 +42,11 @@ if __name__ == '__main__':
     running = True
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    running = False
         all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(fps)
@@ -50,7 +55,6 @@ if __name__ == '__main__':
 
 class cadre(pygame.sprite.Sprite):
     image = load_image("cadre.png")
-
     def __init__(self):
         super().__init__(stabel_group)
         self.image = cadre.image
@@ -91,6 +95,7 @@ class knopki(pygame.sprite.Sprite):
         self.rect.x = 50
         self.rect.y = 850
         #self.mask = pygame.mask.from_surface(self.image)
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
@@ -143,7 +148,7 @@ class Player(pygame.sprite.Sprite):
 
 
             if args:
-                global last_right
+                global last_right, plus_v
                 print(args)
                 if args[0].type == pygame.KEYDOWN:
                     if args[0].key == 1073741906 and self.fall:
@@ -169,8 +174,9 @@ class Player(pygame.sprite.Sprite):
                         self.go_left = False
                     if args[0].key == 1073741904:
                         self.go_right = False
+            global plus_v
             if self.go_left and not self.bumped_left:
-                self.rect = self.rect.move(6, 0)
+                self.rect = self.rect.move(6 + plus_v, 0)
                 if self.collision(stabel_group):
                     self.rect = self.rect.move(-3, 0)
                     if self.collision(stabel_group):
@@ -179,7 +185,7 @@ class Player(pygame.sprite.Sprite):
                             self.rect = self.rect.move(-1, 0)
                     self.bumped_left = True
             if self.go_right and not self.bumped_right:
-                self.rect = self.rect.move(-6, 0)
+                self.rect = self.rect.move(-6 - plus_v, 0)
                 if self.collision(stabel_group):
                     self.rect = self.rect.move(3, 0)
                     if self.collision(stabel_group):
@@ -277,7 +283,7 @@ class piece(pygame.sprite.Sprite):
             for i in stabel_group:
                 global cnt
                 if pygame.sprite.collide_mask(self, i):
-                    s = [i for i in range(80, 400, 40)]
+                    s = [i for i in range(80, 360, 40)]
                     self.rect = self.rect.move(0, -40)
                     self.kill()
                     piece(stabel_group, self.rect.x, self.rect.y, False, self.cur_frame)
@@ -298,9 +304,11 @@ def update_end(image, speed):
 
 if __name__ == '__main__':
     pygame.init()
-    pygame.display.set_caption('tetris')
+    pygame.display.set_caption('Тетрис-Паркур')
     pygame.mixer.music.load("data/Missiya_Nevypolnima_-_Mission_Impossible_Theme_Ost_Missiya_nevypolnima_Plemya_izgoev_62673572.mp3")
     pygame.mixer.music.play(0)
+    font = pygame.font.SysFont('microsofttaile', 32)
+    vol = 1.0
     size = width, height = 480, 1000
     screen = pygame.display.set_mode(size)
     screen.fill([255, 255, 255])
@@ -331,6 +339,18 @@ if __name__ == '__main__':
                         pygame.mixer.music.pause()
                     else:
                         pygame.mixer.music.unpause()
+                elif event.key == pygame.K_l:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                    print(pygame.mixer.music.get_volume())
+                elif event.key == pygame.K_h:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
+                    print(pygame.mixer.music.get_volume())
+            s = [0]
+            if cnt % 5 == 0 and cnt not in s:
+                plus_v += 0.1
+                s.append(cnt)
         all_sprites.update()
         win_group.update()
         player_group.update()
@@ -341,6 +361,9 @@ if __name__ == '__main__':
         player_group.draw(screen)
         clock.tick(fps)
         pygame.display.flip()
+        follow = font.render(f'Score: {cnt}', 1, (255, 0, 0), (0, 0, 0))
+        screen.blit(follow, (0, 0))
+        pygame.display.update()
         if game_over:
             pygame.mixer.music.stop()
             time.sleep(3)
