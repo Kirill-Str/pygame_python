@@ -341,7 +341,6 @@ if __name__ == '__main__':
         player_group.draw(screen)
         clock.tick(fps)
         pygame.display.flip()
-        screen.blit(txxt, (20, 20))
         if game_over:
             pygame.mixer.music.stop()
             time.sleep(3)
