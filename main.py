@@ -7,7 +7,7 @@ import time
 game_over = False
 win, lose = False, False
 last_right = True
-
+cnt = 0
 def load_image(name, colorkey=None):
     image = pygame.image.load(os.path.join('data', name))
     if colorkey is not None:
@@ -69,6 +69,7 @@ player_image = load_image('chel.png', -1)
 
 class door(pygame.sprite.Sprite):
     image = load_image('escape.png', -1)
+
     def __init__(self):
         super().__init__(win_group)
         self.image = door.image
@@ -80,6 +81,16 @@ class door(pygame.sprite.Sprite):
         for i in stabel_group:
             if pygame.sprite.collide_mask(self, i):
                 i.kill()
+class knopki(pygame.sprite.Sprite):
+    image = load_image('knopki.png', -1)
+
+    def __init__(self):
+        super().__init__(player_group)
+        self.image = knopki.image
+        self.rect = self.image.get_rect()
+        self.rect.x = 50
+        self.rect.y = 850
+        #self.mask = pygame.mask.from_surface(self.image)
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
@@ -195,7 +206,7 @@ class piece(pygame.sprite.Sprite):
     def __init__(self, group, x, y, active, *cur_frame):
         super().__init__(group)
         self.frames = []
-        self.cut_sheet(load_image('ntnhbc.png'), 4, 7)
+        self.cut_sheet(load_image('ntnhbc.png', -1), 4, 7)
         if cur_frame:
             self.cur_frame = cur_frame[0]
         else:
@@ -263,15 +274,17 @@ class piece(pygame.sprite.Sprite):
                                 self.mask = pygame.mask.from_surface(self.image)
             else:
                 self.wait += 1
-
             for i in stabel_group:
+                global cnt
                 if pygame.sprite.collide_mask(self, i):
-
+                    s = [i for i in range(80, 400, 40)]
                     self.rect = self.rect.move(0, -40)
                     self.kill()
                     piece(stabel_group, self.rect.x, self.rect.y, False, self.cur_frame)
                     if player.alive:
-                        piece(all_sprites, 200, 40, True)
+                        piece(all_sprites, s[random.randint(0, len(s) - 1)], 40, True)
+                        cnt += 1
+
                     break
             self.count += 1
 
@@ -295,6 +308,7 @@ if __name__ == '__main__':
     cadre()
     player = Player(1, 2)
     dor = door()
+    kn = knopki()
     running = True
     fps = 60
     v = 5
@@ -311,18 +325,12 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_p:
                     Pause = not Pause
                     if Pause:
                         pygame.mixer.music.pause()
                     else:
                         pygame.mixer.music.unpause()
-            #if game_over:
-                #for sprite in all_sprites:
-                #    v = update_end(sprite, v)
-                #all_sprites.draw(screen)
-                #pygame.display.flip()
-                #clock.tick(fps)
         all_sprites.update()
         win_group.update()
         player_group.update()
@@ -333,6 +341,7 @@ if __name__ == '__main__':
         player_group.draw(screen)
         clock.tick(fps)
         pygame.display.flip()
+        screen.blit(txxt, (20, 20))
         if game_over:
             pygame.mixer.music.stop()
             time.sleep(3)
